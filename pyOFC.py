@@ -28,38 +28,67 @@ class Game:
 
     def _player_play(self, num_cards):
         message = ''
-        five_cards = self.deck.draw(num_cards)
-        cards_to_play = five_cards[:]
-        while (not cards_to_play == []):
-            inp = ''
-            while inp not in ['1', '2','3', 'x']:
+        cards = self.deck.draw(num_cards)
+        cards_to_play = cards[:]
+        if num_cards == 3:
+            while True:
                 self.print_screen()
-                if message != '':
-                    print(colored(message, "red"))
+                print("You have drawn these 3 cards:")
                 Card.print_pretty_cards(cards_to_play)
-                print("^^^^^^^^")
-                inp = input("Where would you like to place this card? (1, 2, 3 | x to reset): ")
-                if inp not in ['1', '2','3', 'x']:
-                    message = "Input was not the list 1, 2, 3, x"
-            if inp == 'x':
-                self.player_hand.top = [x for x in self.player_hand.top if x not in five_cards]
-                self.player_hand.middle = [x for x in self.player_hand.middle if x not in five_cards]
-                self.player_hand.bottom = [x for x in self.player_hand.bottom if x not in five_cards]
-                cards_to_play = five_cards[:]
-            else:
-                if not self.player_hand.add_card(cards_to_play[0], int(inp)-1):
-                    message = "Hand is full. Pick a different hand."
+                discard_inp = input("Which card would you like to discard? (1, 2, 3): ")
+                if discard_inp not in ['1', '2', '3']:
+                    print(colored("Invalid input. Please enter 1, 2, or 3.", "red"))
+                    continue
+                discard_idx = int(discard_inp) - 1
+                to_place = [c for i, c in enumerate(cards_to_play) if i != discard_idx]
+                # Place the two cards
+                placements = []
+                for idx, card in enumerate(to_place):
+                    while True:
+                        self.print_screen()
+                        print(f"Card {idx+1} to place:")
+                        Card.print_pretty_cards([card])
+                        row_inp = input("Where would you like to place this card? (1=Top, 2=Middle, 3=Bottom): ")
+                        if row_inp not in ['1', '2', '3']:
+                            print(colored("Invalid input. Please enter 1, 2, or 3.", "red"))
+                            continue
+                        if not self.player_hand.add_card(card, int(row_inp)-1):
+                            print(colored("Hand is full. Pick a different hand.", "red"))
+                            continue
+                        break
+                break
+        else:
+            # Original 5-card logic
+            while (not cards_to_play == []):
+                inp = ''
+                while inp not in ['1', '2','3', 'x']:
+                    self.print_screen()
+                    if message != '':
+                        print(colored(message, "red"))
+                    Card.print_pretty_cards(cards_to_play)
+                    print("^^^^^^^^")
+                    inp = input("Where would you like to place this card? (1, 2, 3 | x to reset): ")
+                    if inp not in ['1', '2','3', 'x']:
+                        message = "Input was not the list 1, 2, 3, x"
+                if inp == 'x':
+                    self.player_hand.top = [x for x in self.player_hand.top if x not in cards]
+                    self.player_hand.middle = [x for x in self.player_hand.middle if x not in cards]
+                    self.player_hand.bottom = [x for x in self.player_hand.bottom if x not in cards]
+                    cards_to_play = cards[:]
                 else:
-                    cards_to_play = cards_to_play[1:]
-                    message = ''
-            if cards_to_play == []:
-                self.print_screen()
-                inp = input("Confirm and end turn? (y/n): ")
-                if inp not in 'Yy':
-                    self.player_hand.top = [x for x in self.player_hand.top if x not in five_cards]
-                    self.player_hand.middle = [x for x in self.player_hand.middle if x not in five_cards]
-                    self.player_hand.bottom = [x for x in self.player_hand.bottom if x not in five_cards]
-                    cards_to_play = five_cards[:]
+                    if not self.player_hand.add_card(cards_to_play[0], int(inp)-1):
+                        message = "Hand is full. Pick a different hand."
+                    else:
+                        cards_to_play = cards_to_play[1:]
+                        message = ''
+                if cards_to_play == []:
+                    self.print_screen()
+                    inp = input("Confirm and end turn? (y/n): ")
+                    if inp not in 'Yy':
+                        self.player_hand.top = [x for x in self.player_hand.top if x not in cards]
+                        self.player_hand.middle = [x for x in self.player_hand.middle if x not in cards]
+                        self.player_hand.bottom = [x for x in self.player_hand.bottom if x not in cards]
+                        cards_to_play = cards[:]
 
     def _comp_play(self, num_cards):
         five_cards = self.deck.draw(num_cards)
@@ -72,6 +101,9 @@ class Game:
 
     def run_1_card(self):
         self._run_x_cards(1)
+
+    def run_3_card_pineapple(self):
+        self._run_x_cards(3)
 
     def evaluate_hands(self):
         player_raw_score = self.player_hand.evaluate_hand()
@@ -160,10 +192,10 @@ class Game:
 # Runs each game in a loop
 def play():
     game = Game()
-    while(1):
+    while True:
         game.run_5_card()
-        for _ in range(8):
-            game.run_1_card()
+        for _ in range(4):
+            game.run_3_card_pineapple()
         game.evaluate_hands()
 
 # Parses and evaluates/stores arguments given at launch
