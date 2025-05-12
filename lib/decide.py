@@ -1,5 +1,5 @@
 from random import sample
-from ofc_hand import Hand
+from .ofc_hand import Hand
 from lib.deuces import Deck, Card
 import itertools
 import time
@@ -20,7 +20,7 @@ class Possible_Hand:
         self.hand.middle = game.computer_hand.middle[:]
         self.hand.bottom = game.computer_hand.bottom[:]
         self.order_to_place = order_to_place
-        for i in xrange(len(cards_to_place)):
+        for i in range(len(cards_to_place)):
             self.hand.add_card(cards_to_place[i], order_to_place[i])
         self.rating = -1
         self.times_run = 0
@@ -62,11 +62,11 @@ def place_cards(game, cards_to_place, fivecardtime=5, onecardtime=3, explain=Fal
             explanation = "There is only one possible placement remaining."
         return possible_placements, explanation
     if len(cards_to_place) == 5:
-        pairs = [[] for _ in xrange(13)]
-        flushes = [[] for _ in xrange(4)]
+        pairs = [[] for _ in range(13)]
+        flushes = [[] for _ in range(4)]
         flush_place = []
         pair_place = []
-        for i in xrange(5):
+        for i in range(5):
             suit_int = SUIT_MAP[Card.get_suit_int(cards_to_place[i])]
             rank_int = Card.get_rank_int(cards_to_place[i])
             pairs[rank_int].append(i)

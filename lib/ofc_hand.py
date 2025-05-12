@@ -32,10 +32,10 @@ class Hand:
         self.bottom = []
 
     def print_hand(self):
-        print self.player_name
-        filled_top = self.top[:] + [-1 for i in xrange(3 - len(self.top))]
-        filled_middle = self.middle[:] + [-1 for i in xrange(5 - len(self.middle))]
-        filled_bottom = self.bottom[:] + [-1 for i in xrange(5 - len(self.bottom))]
+        print(self.player_name)
+        filled_top = self.top[:] + [-1 for i in range(3 - len(self.top))]
+        filled_middle = self.middle[:] + [-1 for i in range(5 - len(self.middle))]
+        filled_bottom = self.bottom[:] + [-1 for i in range(5 - len(self.bottom))]
         Card.print_pretty_cards(filled_top)
         Card.print_pretty_cards(filled_middle)
         Card.print_pretty_cards(filled_bottom)

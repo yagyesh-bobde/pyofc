@@ -1,4 +1,5 @@
-from card import Card
+from .card import Card
+from functools import reduce
 
 STR_RANKS = '23456789TJQKA'
 
@@ -16,11 +17,11 @@ def make_straight(cardsUsed, rank):
 
 # Allows Deuces to evaluate 3 card hands
 def fill_hand(hand):
-    cardsUsed = [0 for i in xrange(13)]
+    cardsUsed = [0 for i in range(13)]
     for card in hand:
         cardsUsed[Card.get_rank_int(card)] = 1
     toFill = 2
-    for i in xrange(13):
+    for i in range(13):
         if toFill == 0:
             break
         if cardsUsed[i] == 0 and not make_straight(cardsUsed, i):
@@ -28,7 +29,7 @@ def fill_hand(hand):
             toFill -= 1
     new_hand = hand[:]
     suit = ['s', 'd']
-    for i in xrange(13):
+    for i in range(13):
         if cardsUsed[i] == 2:
             card_string = STR_RANKS[i] + suit[0]
             suit = suit[1:]

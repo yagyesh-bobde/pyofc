@@ -1,6 +1,5 @@
-# -*- coding: iso-8859-15 -*-
-
 from termcolor import colored
+from functools import reduce
 
 class Card ():
     """
@@ -46,10 +45,10 @@ class Card ():
 
     # for pretty printing
     PRETTY_SUITS = {
-        1 : u"\u2660".encode('utf-8'), # spades
-        2 : colored(u"\u2764".encode('utf-8'), 'red'), # hearts
-        4 : colored(u"\u2666".encode('utf-8'), 'cyan'), # diamonds
-        8 : colored(u"\u2663".encode('utf-8'), 'green') # clubs
+        1 : u"\u2660", # spades
+        2 : colored(u"\u2764", 'red'), # hearts
+        4 : colored(u"\u2666", 'cyan'), # diamonds
+        8 : colored(u"\u2663", 'green') # clubs
     }
 
      # hearts and diamonds
@@ -207,15 +206,15 @@ class Card ():
 
     @staticmethod
     def int_to_pretty_str(card_int):
-        for i in xrange(6):
-            print Card.int_to_part_pretty_str(card_int, i)
+        for i in range(6):
+            print(Card.int_to_part_pretty_str(card_int, i))
 
     @staticmethod
     def print_pretty_card(card_int):
         """
         Expects a single integer as input
         """
-        print Card.int_to_pretty_str(card_int)
+        print(Card.int_to_pretty_str(card_int))
 
     @staticmethod
     def return_pretty_cards_line(card_ints, j):
@@ -237,7 +236,7 @@ class Card ():
         """
         Expects a list of cards in integer form.
         """
-        for j in xrange(6):
+        for j in range(6):
             output = ""
             for i in range(len(card_ints)):
                 c = card_ints[i]
@@ -246,4 +245,4 @@ class Card ():
                 else:
                     output += Card.int_to_part_pretty_str(c, j)
         
-            print output
+            print(output)

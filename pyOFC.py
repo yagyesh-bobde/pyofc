@@ -1,4 +1,5 @@
-from lib.deuces import Card, Deck
+from lib.deuces.card import Card
+from lib.deuces.deck import Deck
 from lib.decide import place_cards
 from lib.ofc_hand import Hand, return_hand_vals
 from lib.deuces.termcolor import colored
@@ -34,10 +35,10 @@ class Game:
             while inp not in ['1', '2','3', 'x']:
                 self.print_screen()
                 if message != '':
-                    print colored(message, "red")
+                    print(colored(message, "red"))
                 Card.print_pretty_cards(cards_to_play)
-                print "^^^^^^^^"
-                inp = raw_input("Where would you like to place this card? (1, 2, 3 | x to reset): ")
+                print("^^^^^^^^")
+                inp = input("Where would you like to place this card? (1, 2, 3 | x to reset): ")
                 if inp not in ['1', '2','3', 'x']:
                     message = "Input was not the list 1, 2, 3, x"
             if inp == 'x':
@@ -53,7 +54,7 @@ class Game:
                     message = ''
             if cards_to_play == []:
                 self.print_screen()
-                inp = raw_input("Confirm and end turn? (y/n): ")
+                inp = input("Confirm and end turn? (y/n): ")
                 if inp not in 'Yy':
                     self.player_hand.top = [x for x in self.player_hand.top if x not in five_cards]
                     self.player_hand.middle = [x for x in self.player_hand.middle if x not in five_cards]
@@ -63,7 +64,7 @@ class Game:
     def _comp_play(self, num_cards):
         five_cards = self.deck.draw(num_cards)
         order, self.explanation = place_cards(self, five_cards, onecardtime=onecardtime, fivecardtime=fivecardtime, explain=explain)
-        for i in xrange(len(five_cards)):
+        for i in range(len(five_cards)):
             self.computer_hand.add_card(five_cards[i], order[i])
 
     def run_5_card(self):
@@ -111,10 +112,10 @@ class Game:
             message = 'You scooped or your opponent busted!'
         else:
             message = 'You scored %d points on this hand' % (temp_score)
-        print message
+        print(message)
         inp = ''
         while (inp not in ["Y","y","N","n"]):
-            inp = raw_input("Would you like to play another hand? (y/n): ")
+            inp = input("Would you like to play another hand? (y/n): ")
             if (inp in ["N","n"]):
                 exit(0)
         self.explanation = ''
@@ -126,7 +127,7 @@ class Game:
     def print_screen(self):
         os.system('clear')
         if self.explanation != '':
-            print self.explanation
+            print(self.explanation)
         name_spacing = "                                                       "
         if self.score == 0:
             player_score = " (" + str(self.score) + ")"
@@ -140,28 +141,28 @@ class Game:
             player_score = colored(" (" + str(self.score) + ")", 'red')
             computer_score = colored(" (+" + str(-self.score) + ")", 'green')
             cps_len = len(" (+" + str(-self.score) + ")")
-        print colored(self.computer_hand.player_name, attrs=['bold']) + computer_score + name_spacing[len(self.computer_hand.player_name) + cps_len:] + colored(self.player_hand.player_name, attrs=['bold']) + player_score
-        filled_top_computer = self.computer_hand.top[:] + [-1 for i in xrange(3 - len(self.computer_hand.top))]
-        filled_middle_computer = self.computer_hand.middle[:] + [-1 for i in xrange(5 - len(self.computer_hand.middle))]
-        filled_bottom_computer = self.computer_hand.bottom[:] + [-1 for i in xrange(5 - len(self.computer_hand.bottom))]
-        filled_top_player = self.player_hand.top[:] + [-1 for i in xrange(3 - len(self.player_hand.top))]
-        filled_middle_player = self.player_hand.middle[:] + [-1 for i in xrange(5 - len(self.player_hand.middle))]
-        filled_bottom_player = self.player_hand.bottom[:] + [-1 for i in xrange(5 - len(self.player_hand.bottom))]
+        print(colored(self.computer_hand.player_name, attrs=['bold']) + computer_score + name_spacing[len(self.computer_hand.player_name) + cps_len:] + colored(self.player_hand.player_name, attrs=['bold']) + player_score)
+        filled_top_computer = self.computer_hand.top[:] + [-1 for i in range(3 - len(self.computer_hand.top))]
+        filled_middle_computer = self.computer_hand.middle[:] + [-1 for i in range(5 - len(self.computer_hand.middle))]
+        filled_bottom_computer = self.computer_hand.bottom[:] + [-1 for i in range(5 - len(self.computer_hand.bottom))]
+        filled_top_player = self.player_hand.top[:] + [-1 for i in range(3 - len(self.player_hand.top))]
+        filled_middle_player = self.player_hand.middle[:] + [-1 for i in range(5 - len(self.player_hand.middle))]
+        filled_bottom_player = self.player_hand.bottom[:] + [-1 for i in range(5 - len(self.player_hand.bottom))]
         hand_pairs = [(filled_top_computer, filled_top_player), (filled_middle_computer, filled_middle_player), (filled_bottom_computer, filled_bottom_player)]
         hand_num = 1
         for hand in hand_pairs:
             spacing = "                             " if hand_num == 1 else "           "
-            for i in xrange(6):
-                print Card.return_pretty_cards_line(hand[0], i) + spacing + Card.return_pretty_cards_line(hand[1], i) + ("".join([" " for _ in xrange(20)]) if hand_num == 0 else "  ") + (colored(str(hand_num), "blue") if i == 2 else " ")
+            for i in range(6):
+                print(Card.return_pretty_cards_line(hand[0], i) + spacing + Card.return_pretty_cards_line(hand[1], i) + ("".join([" " for _ in range(20)]) if hand_num == 0 else "  ") + (colored(str(hand_num), "blue") if i == 2 else " "))
             hand_num += 1
-        print "".join(["_" for i in xrange(99)])
+        print("".join(["_" for i in range(99)]))
             
 # Runs each game in a loop
 def play():
     game = Game()
     while(1):
         game.run_5_card()
-        for _ in xrange(8):
+        for _ in range(8):
             game.run_1_card()
         game.evaluate_hands()
 
