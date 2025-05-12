@@ -7,6 +7,18 @@ _Markdown and HTML versions of this README are available in the source distribut
 
 [Github Link](https://github.com/wesny/pyofc)
 
+## HOW TO RUN 
+```
+git clone https://github.com/yagyesh-bobde/pyofc.git
+cd pyofc
+
+source -m venv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
+
+python3 pyOFC.py
+```
+
 #### Author
 Sweyn Venderbush  
 sv298  
