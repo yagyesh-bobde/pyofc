@@ -1,7 +1,7 @@
 pyOFC
 =====
 
-__pyOFC__ allows users to play Open Face Chinese Poker against an advanced and real-time-calculated AI via a colorful and user-friendly command line interface.
+__pyOFC__ allows users to play Open Face Chinese Poker against an advanced and real-time-calculated AI via a colorful and user-friendly command line interface. (Pinneapple variant)
 
 _Markdown and HTML versions of this README are available in the source distribution._
 
