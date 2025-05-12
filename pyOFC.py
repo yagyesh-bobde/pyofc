@@ -1,7 +1,7 @@
 from lib.deuces.card import Card
 from lib.deuces.deck import Deck
 from lib.decide import place_cards
-from lib.ofc_hand import Hand, return_hand_vals
+from lib.ofc_hand import Hand, return_hand_vals, calculate_royalties, get_hand_type
 from lib.deuces.termcolor import colored
 import os
 import argparse
@@ -56,6 +56,7 @@ class Game:
                             print(colored("Hand is full. Pick a different hand.", "red"))
                             continue
                         break
+                self.print_screen()  # Show final board after both cards are placed
                 break
         else:
             # Original 5-card logic
@@ -82,7 +83,7 @@ class Game:
                         cards_to_play = cards_to_play[1:]
                         message = ''
                 if cards_to_play == []:
-                    self.print_screen()
+                    self.print_screen()  # Show final board after last card is placed
                     inp = input("Confirm and end turn? (y/n): ")
                     if inp not in 'Yy':
                         self.player_hand.top = [x for x in self.player_hand.top if x not in cards]
@@ -91,10 +92,11 @@ class Game:
                         cards_to_play = cards[:]
 
     def _comp_play(self, num_cards):
-        five_cards = self.deck.draw(num_cards)
-        order, self.explanation = place_cards(self, five_cards, onecardtime=onecardtime, fivecardtime=fivecardtime, explain=explain)
-        for i in range(len(five_cards)):
-            self.computer_hand.add_card(five_cards[i], order[i])
+        cards = self.deck.draw(num_cards)
+        to_place, order, explanation = place_cards(self, cards, onecardtime=onecardtime, fivecardtime=fivecardtime, explain=explain)
+        self.explanation = explanation
+        for i in range(len(to_place)):
+            self.computer_hand.add_card(to_place[i], order[i])
 
     def run_5_card(self):
         self._run_x_cards(5)
@@ -106,45 +108,108 @@ class Game:
         self._run_x_cards(3)
 
     def evaluate_hands(self):
+        # Evaluate hands
         player_raw_score = self.player_hand.evaluate_hand()
         computer_raw_score = self.computer_hand.evaluate_hand()
-        if player_raw_score == computer_raw_score == 7463*3:
-            temp_score = 0
-        elif player_raw_score == 7463*3:
-            temp_score = -6
-            self.score -= 6
-        elif computer_raw_score == 7463*3:
-            temp_score = 6
-            self.score += 6
-        else:
-            c_top, c_middle, c_bottom, p_top, p_middle, p_bottom = return_hand_vals(self.computer_hand, self.player_hand)
-            temp_score = 0
-            if c_top > p_top:
-                temp_score += 1
-            elif c_top < p_top:
-                temp_score -= 1
-            if c_middle > p_middle:
-                temp_score += 1
-            elif c_middle < p_middle:
-                temp_score -= 1
-            if c_bottom > p_bottom:
-                temp_score += 1
-            elif c_bottom < p_bottom:
-                temp_score -= 1
-            if abs(temp_score) == 3:
-                temp_score *= 2
-            self.score += temp_score
-        self.print_screen()
-        message = ''
-        if temp_score == 0:
-            message = "You both busted or tied!"
-        elif temp_score == -6:
-            message = 'You busted or were scooped!'
-        elif temp_score == 6:
-            message = 'You scooped or your opponent busted!'
-        else:
-            message = 'You scored %d points on this hand' % (temp_score)
-        print(message)
+        # Prepare hands for display and scoring
+        player_rows = [self.player_hand.top, self.player_hand.middle, self.player_hand.bottom]
+        computer_rows = [self.computer_hand.top, self.computer_hand.middle, self.computer_hand.bottom]
+        row_names = ['Front', 'Middle', 'Back']
+        # Check for fouls
+        player_foul = player_raw_score == 7463*3
+        computer_foul = computer_raw_score == 7463*3
+        # Calculate royalties and hand types
+        player_royalties = []
+        computer_royalties = []
+        player_types = []
+        computer_types = []
+        for i, row in enumerate(['front', 'middle', 'back']):
+            prow, preason = calculate_royalties(row, player_rows[i])
+            crow, creason = calculate_royalties(row, computer_rows[i])
+            player_royalties.append((prow, preason))
+            computer_royalties.append((crow, creason))
+            player_types.append(get_hand_type(player_rows[i]))
+            computer_types.append(get_hand_type(computer_rows[i]))
+        # Unit points
+        unit_points = [0, 0, 0]
+        for i in range(3):
+            if player_foul and computer_foul:
+                unit_points[i] = 0
+            elif player_foul:
+                unit_points[i] = -1
+            elif computer_foul:
+                unit_points[i] = 1
+            else:
+                pscore = self.player_hand.evaluate_hand() if i == 0 else None
+                cscore = self.computer_hand.evaluate_hand() if i == 0 else None
+                # Actually, use the row scores
+                prow = player_rows[i]
+                crow = computer_rows[i]
+                from lib.deuces.evaluator import Evaluator
+                evaluator = Evaluator()
+                pval = evaluator.evaluate([], prow)
+                cval = evaluator.evaluate([], crow)
+                if cval > pval:
+                    unit_points[i] = 1
+                elif cval < pval:
+                    unit_points[i] = -1
+                else:
+                    unit_points[i] = 0
+        # Sweep bonus
+        sweep = False
+        if not player_foul and not computer_foul:
+            if all(u == 1 for u in unit_points):
+                sweep = 'player'
+            elif all(u == -1 for u in unit_points):
+                sweep = 'computer'
+        # Net royalties
+        player_royalty_total = sum([x[0] for x in player_royalties])
+        computer_royalty_total = sum([x[0] for x in computer_royalties])
+        net_royalty = player_royalty_total - computer_royalty_total
+        # Net unit points
+        net_unit = sum(unit_points)
+        if sweep == 'player':
+            net_unit += 3
+        elif sweep == 'computer':
+            net_unit -= 3
+        # Foul handling
+        if player_foul and computer_foul:
+            net_unit = 0
+            net_royalty = 0
+        elif player_foul:
+            net_unit = -6
+            net_royalty = -computer_royalty_total
+        elif computer_foul:
+            net_unit = 6
+            net_royalty = player_royalty_total
+        # Update running score
+        self.score += net_unit + net_royalty
+        # Print table
+        print("\n+--------+----------------------+--------+----------------------+--------+--------+--------+")
+        print("| Row    | Player Hand         | Royalty| CPU Hand            | Royalty| Winner | Unit   |")
+        print("+--------+----------------------+--------+----------------------+--------+--------+--------+")
+        for i, row in enumerate(row_names):
+            prow, preason = player_royalties[i]
+            crow, creason = computer_royalties[i]
+            winner = 'Tie'
+            if unit_points[i] == 1:
+                winner = 'Player'
+            elif unit_points[i] == -1:
+                winner = 'CPU'
+            print(f"| {row:<6} | {player_types[i]:<20} | {prow:>2} {preason:<7}| {computer_types[i]:<20} | {crow:>2} {creason:<7}| {winner:<6} | {unit_points[i]:>5}  |")
+        print("+--------+----------------------+--------+----------------------+--------+--------+--------+")
+        print(f"| Royalties: Player {player_royalty_total}, CPU {computer_royalty_total}, Net {net_royalty:+d}")
+        print(f"| Unit Points: Player {sum([1 if u==1 else 0 for u in unit_points])}, CPU {sum([1 if u==-1 else 0 for u in unit_points])}, Net {net_unit:+d}")
+        if sweep:
+            print(f"| Sweep Bonus: {sweep.title()} +3")
+        if player_foul:
+            print("| Player fouled! CPU gets +6 and all royalties.")
+        elif computer_foul:
+            print("| CPU fouled! Player gets +6 and all royalties.")
+        print("+--------------------------------------------------------------------------+")
+        print(f"| Total This Hand: {net_unit + net_royalty:+d}")
+        print("+--------------------------------------------------------------------------+\n")
+        # Continue as before
         inp = ''
         while (inp not in ["Y","y","N","n"]):
             inp = input("Would you like to play another hand? (y/n): ")
@@ -194,8 +259,12 @@ def play():
     game = Game()
     while True:
         game.run_5_card()
-        for _ in range(4):
+        for i in range(4):
             game.run_3_card_pineapple()
+        # After the last player turn, if the AI didn't just play, let it play
+        if game.num_hands % 2 == 0:  # If player went last
+            game._comp_play(3)
+        game.print_screen()  # Always show the final board before scoring
         game.evaluate_hands()
 
 # Parses and evaluates/stores arguments given at launch
