@@ -17,6 +17,7 @@ source venv/bin/activate
 pip3 install -r requirements.txt
 
 python3 pyOFC.py
+python3 pyOFC.py -f 10 -o 10 -e
 ```
 
 #### Author
